@@ -23,9 +23,14 @@ defmodule ChatopsRPC.Supervisor do
   def init(opts) do
     children = [
       {opts[:storage], opts},
+      {Task.Supervisor, name: task_sup(opts[:name])},
       {Endpoints, opts}
     ]
 
     Supervisor.init(children, strategy: :one_for_one)
+  end
+
+  def task_sup(name) do
+    :"#{name}.TaskSupervisor"
   end
 end

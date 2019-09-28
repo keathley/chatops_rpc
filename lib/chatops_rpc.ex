@@ -27,6 +27,10 @@ defmodule ChatopsRPC do
     Endpoints.get_all_urls(server)
   end
 
+  def send_rpc(prefix, rpc, args \\ []) do
+
+  end
+
   def valid_url(url) do
     uri = URI.parse(url)
 
