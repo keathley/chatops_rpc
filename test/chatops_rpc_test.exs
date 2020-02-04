@@ -41,4 +41,11 @@ defmodule ChatopsRPCTest do
       assert {:error, {:existing_prefix, url_1}} == ChatopsRPC.add_endpoint(TestOps, "test", url_2)
     end
   end
+
+  describe "exec" do
+    test "" do
+
+    end
+  end
 end
+

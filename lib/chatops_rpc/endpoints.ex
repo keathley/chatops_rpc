@@ -58,8 +58,6 @@ defmodule ChatopsRPC.Endpoints do
     {:noreply, data}
   end
 
-  defp get(
-
   defp schedule_check() do
     Process.send_after(self(), :check_for_updates, 5_000)
   end
