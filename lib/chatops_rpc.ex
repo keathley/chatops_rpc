@@ -27,7 +27,8 @@ defmodule ChatopsRPC do
     Endpoints.get_all_urls(server)
   end
 
-  def fetch_rpcs(url) do
+  def listing(url) do
+    ChatopsRPC.Client.list_rpcs(url)
   end
 
   def exec(prefix, rpc, args \\ []) do

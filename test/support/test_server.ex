@@ -3,13 +3,24 @@ defmodule ChatopsRPC.TestPlug do
 
   namespace :test_ops
 
-  chatop :echo, ~r/(?<text>.*)?/, "<text> - Echo some text back to you", fn msg ->
-    "Echoing stuff back to you: #{msg.matches[:text]}"
+  @help """
+  <text> - Echo some text back to you
+  """
+  command :echo, ~r/(?<text>.*)?/, fn %{params: args} ->
+    "#{args["text"]}"
   end
 end
 
 defmodule ChatopsRPC.TestRouter do
   use Plug.Router
+
+  plug Plug.Parsers,
+    parsers: [:urlencoded, :json],
+    pass: ["text/*"],
+    json_decoder: Jason
+
+  plug :match
+  plug :dispatch
 
   forward "/_chatops", to: ChatopsRPC.TestPlug
 end
