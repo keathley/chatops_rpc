@@ -1,5 +1,5 @@
 defmodule ChatopsRPC.TestPlug do
-  use ChatopsRPC.Plug
+  use ChatopsRPC.Builder
 
   namespace :test_ops
 
@@ -22,11 +22,12 @@ defmodule ChatopsRPC.TestRouter do
   plug :match
   plug :dispatch
 
-  forward "/_chatops", to: ChatopsRPC.TestPlug
+  forward "/_chatops", to: ChatopsRPC.Plug, handler: ChatopsRPC.TestPlug
 end
 
 defmodule ChatopsRPC.TestServer do
   def start do
+    {:ok, _} = ChatopsRPC.Server.start_link(base_url: "http://localhost:4002")
     Plug.Cowboy.http ChatopsRPC.TestRouter, [], [port: 4002]
   end
 end
