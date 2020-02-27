@@ -48,7 +48,7 @@ defmodule ChatopsRPC.Builder do
 
       @commands %{
         regex: Regex.source(regex),
-        help: help,
+        help: String.trim_trailing(help),
         path: Atom.to_string(name),
         params: Regex.names(regex),
         f: f,

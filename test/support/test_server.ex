@@ -17,7 +17,8 @@ defmodule ChatopsRPC.TestRouter do
   plug Plug.Parsers,
     parsers: [:urlencoded, :json],
     pass: ["text/*"],
-    json_decoder: Jason
+    json_decoder: Jason,
+    body_reader: {ChatopsRPC.Plug.BodyReader, :read_body, []}
 
   plug :match
   plug :dispatch
@@ -27,7 +28,8 @@ end
 
 defmodule ChatopsRPC.TestServer do
   def start do
-    {:ok, _} = ChatopsRPC.Server.start_link(base_url: "http://localhost:4002")
+    public_key = File.read!("test/support/chatops.key.pub")
+    {:ok, _} = ChatopsRPC.Server.start_link(base_url: "http://localhost:4002", public_key: public_key)
     Plug.Cowboy.http ChatopsRPC.TestRouter, [], [port: 4002]
   end
 end

@@ -5,6 +5,8 @@ defmodule ChatopsRPC.ClientTest do
   alias ChatopsRPC.Client
 
   setup_all do
+    key = File.read!("test/support/chatops.key")
+    Client.start_link(private_key: key)
     TestServer.start()
 
     :ok
@@ -22,7 +24,7 @@ defmodule ChatopsRPC.ClientTest do
         "echo" => %{
           regex: "(?<text>.*)?",
           path: "echo",
-          params: [],
+          params: ["text"],
           help: "<text> - Echo some text back to you",
         }
       }
