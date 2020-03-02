@@ -17,8 +17,8 @@ defmodule ChatopsRPC.Handler do
     {:ok, state}
   end
 
-  respond(~r/rpc add (\S+)/, fn matches, event, state ->
-    uri = URI.parse(match)
+  respond(~r/rpc add (\S+)/, fn [url], event, state ->
+    uri = URI.parse(url)
 
     if uri.scheme != "https" && state[:mode] != :test do
       reply(event, "ChatopsRPC is HTTPS only")
@@ -48,10 +48,15 @@ defmodule ChatopsRPC.Handler do
     code(event, list)
   end)
 
-  listener(
+  listen(
     fn event, state ->
+      if match?(%Message{}, event) do
+        true
+      else
+        false
+      end
     end,
-    fn matches, event, state ->
+    fn _matches, event, state ->
       Enum.each(Client.methods(), fn method ->
         maybe_call_method(event, method, state)
       end)
