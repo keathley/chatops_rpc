@@ -6,7 +6,7 @@ defmodule ChatopsRPC.TestPlug do
   @help """
   <text> - Echo some text back to you
   """
-  command :echo, ~r/(?<text>.*)?/, fn %{params: args} ->
+  command :echo, ~r/echo (?<text>.*)?/, fn %{params: args} ->
     "#{args["text"]}"
   end
 end

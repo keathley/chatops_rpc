@@ -1,47 +1,52 @@
 defmodule ChatopsRPC.ClientTest do
   use ExUnit.Case, async: false
 
-  alias ChatopsRPC.TestServer
   alias ChatopsRPC.Client
+  alias ChatopsRPC.TestServer
 
   setup_all do
-    key = File.read!("test/support/chatops.key")
-    Client.start_link(private_key: key)
     TestServer.start()
 
     :ok
   end
 
-  test "can request rpcs from an endpoint" do
-    url = "http://localhost:4002/_chatops"
-    {:ok, response} = ChatopsRPC.listing(url)
+  setup do
+    key = File.read!("test/support/chatops.key")
+    Client.start_link(private_key: key)
 
-    assert response == %{
-      namespace: "test_ops",
-      help: nil,
-      error_response: nil,
-      methods: %{
-        "echo" => %{
-          regex: "(?<text>.*)?",
-          path: "echo",
-          params: ["text"],
-          help: "<text> - Echo some text back to you",
-        }
-      }
-    }
+    :ok
   end
 
-  test "can call rpcs" do
-    url = "http://localhost:4002/_chatops"
-    rpc = %{
-      user: "chris",
-      room_id: "room id",
-      method: "echo",
-      params: %{
-        "text" => "foo"
+  test "monitors endpoints" do
+    us = self()
+
+    assert :ok = Client.start_polling("http://localhost:4002/_chatops")
+
+    Client.find_method("test_ops echo foo bar", fn url, method ->
+      send(us, {:found, url, method})
+    end)
+
+    assert_receive {:found, url, method}
+    assert url == "http://localhost:4002/_chatops"
+    assert method.name == "echo"
+  end
+
+  test "can call methods" do
+    us = self()
+    assert :ok = Client.start_polling("http://localhost:4002/_chatops")
+
+    Client.find_method("test_ops echo foo bar", fn url, method ->
+      data = %{
+        user: "test",
+        room_id: "test-room",
+        method: method.name,
+        params: Regex.named_captures(method.regex, "test_ops echo foo bar")
       }
-    }
-    {:ok, response} = Client.call(url, "echo", rpc)
-    assert response == "foo"
+      {:ok, result} = Client.call(url, method.path, data)
+      send(us, {:result, result})
+    end)
+
+    assert_receive {:result, text}
+    assert text == "foo bar"
   end
 end

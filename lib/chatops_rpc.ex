@@ -1,43 +1,5 @@
 defmodule ChatopsRPC do
   @moduledoc """
-  ChatopsRPC allows you specify chatops endpoints and send them rpc commands.
+  TODO - Add docs here
   """
-  import Norm
-
-  alias __MODULE__.{
-    Endpoints,
-    Supervisor
-  }
-
-  def child_spec(opts) do
-    Supervisor.child_spec(opts)
-  end
-
-  def start_link(opts) do
-    Supervisor.start_link(opts)
-  end
-
-  def add_endpoint(server, prefix, url) when is_binary(prefix) and is_binary(url) do
-    with {:ok, url} <- conform(url, spec(valid_url())) do
-      Endpoints.put(server, prefix, url)
-    end
-  end
-
-  def list_endpoints(server) do
-    Endpoints.get_all_urls(server)
-  end
-
-  def listing(url) do
-    ChatopsRPC.Client.list_rpcs(url)
-  end
-
-  def exec(prefix, rpc, args \\ []) do
-  end
-
-  def valid_url(url) do
-    uri = URI.parse(url)
-
-    !is_nil(uri.scheme) and uri.scheme == "https"
-  end
 end
-

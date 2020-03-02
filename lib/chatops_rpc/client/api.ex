@@ -1,9 +1,8 @@
 defmodule ChatopsRPC.Client.API do
   @moduledoc false
-
   alias ChatopsRPC.Client
 
-  def info(client \\ __MODULE__, url) do
+  def listing(client, url) do
     with {:ok, %{body: body}} <- Mojito.get(url, headers(client, url)),
          {:ok, listing} <- Jason.decode(body),
          {:ok, cast} <- cast(listing) do
@@ -11,7 +10,7 @@ defmodule ChatopsRPC.Client.API do
     end
   end
 
-  def call(client \\ __MODULE__, url, method, rpc) do
+  def call(client, url, method, rpc) do
     url = "#{url}/#{method}"
     bin = Jason.encode!(rpc)
     headers = headers(client, url, bin)
@@ -50,21 +49,16 @@ defmodule ChatopsRPC.Client.API do
     ]
   end
 
-  defp nonce do
-    Base.encode64(:crypto.strong_rand_bytes(32))
-  end
-
   defp cast(listing) do
     methods =
       listing["methods"]
       |> Enum.map(fn {name, rpc} ->
-        rpc = %{
+        {name, %{
           regex: rpc["regex"],
           path: rpc["path"],
           params: rpc["params"],
           help: rpc["help"],
-        }
-        {name, rpc}
+        }}
       end)
       |> Enum.into(%{})
 
@@ -78,3 +72,4 @@ defmodule ChatopsRPC.Client.API do
     {:ok, listing}
   end
 end
+
