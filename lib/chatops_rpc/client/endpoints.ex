@@ -15,8 +15,12 @@ defmodule ChatopsRPC.Client.Endpoints do
     GenServer.call(server, {:find_rpc, text})
   end
 
-  def start_polling(server, url) do
-    GenServer.call(server, {:put, url})
+  def start_polling(server, url, prefix) do
+    GenServer.call(server, {:start_polling, url, prefix})
+  end
+
+  def remove(server, url) do
+    GenServer.call(server, {:remove, url})
   end
 
   def list(server) do
@@ -37,6 +41,7 @@ defmodule ChatopsRPC.Client.Endpoints do
       listings: Listings.new()
     }
 
+    schedule_check()
     {:ok, data}
   end
 
@@ -44,15 +49,21 @@ defmodule ChatopsRPC.Client.Endpoints do
     {:reply, Listings.endpoints(state.listings), state}
   end
 
-  def handle_call({:put, url}, _from, state) do
-    # TODO - Make sure that the url / prefix don't already exist in here
-    case API.listing(state.client, url) do
-      {:ok, info} ->
-        listings = Listings.add_listing(state.listings, info, url)
-        {:reply, :ok, %{state | listings: listings}}
+  def handle_call({:start_polling, url, prefix}, _from, state) do
+    listing = Listings.listing(state.listings, prefix)
 
-      {:error, e} ->
-        {:reply, {:error, e}, state}
+    if listing do
+      {:error, "#{prefix} is already associated with #{listing.url}."}
+    else
+      case API.listing(state.client, url) do
+        {:ok, info} ->
+          listings = Listings.add_listing(state.listings, info, url, prefix)
+          {:reply, :ok, %{state | listings: listings}}
+
+        {:error, e} ->
+          Logger.error(fn -> "Error adding chatops: #{inspect e}" end)
+          {:reply, {:error, "calling #{url} failed."}, state}
+      end
     end
   end
 
@@ -61,17 +72,22 @@ defmodule ChatopsRPC.Client.Endpoints do
     {:reply, result, state}
   end
 
+  def handle_call({:remove, url}, _, state) do
+    listings = Listings.remove(state.listings, url)
+    {:reply, :ok, %{state | listings: listings}}
+  end
+
   def handle_info(:check_for_updates, state) do
     listings =
       state.listings
       |> Listings.endpoints
-      |> Enum.reduce(state.listings, fn {prefix, url}, listings ->
-        case API.listing(state.name, url) do
+      |> Enum.reduce(state.listings, fn {prefix, endpoint}, listings ->
+        case API.listing(state.client, endpoint.url) do
           {:ok, listing} ->
             Listings.update_listing(listings, prefix, listing)
 
           {:error, _e} ->
-            Logger.error(fn -> "Error fetching listing from: #{url}" end)
+            Logger.error(fn -> "Error fetching listing from: #{endpoint.url}" end)
             listings
         end
       end)

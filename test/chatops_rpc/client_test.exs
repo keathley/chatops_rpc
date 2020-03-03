@@ -20,7 +20,7 @@ defmodule ChatopsRPC.ClientTest do
   test "monitors endpoints" do
     us = self()
 
-    assert :ok = Client.start_polling("http://localhost:4002/_chatops")
+    assert :ok = Client.add("http://localhost:4002/_chatops")
 
     Client.find_method("test_ops echo foo bar", fn url, method ->
       send(us, {:found, url, method})
@@ -48,5 +48,33 @@ defmodule ChatopsRPC.ClientTest do
 
     assert_receive {:result, text}
     assert text == "foo bar"
+  end
+
+  test "won't add a service with a prefix that already exists" do
+    flunk "Not tested yet"
+  end
+
+  test "adds help messages" do
+    flunk "Not tested yet"
+  end
+
+  test "extracts arguments" do
+    flunk "Not tested yet"
+  end
+
+  test "can add with a prefix" do
+    flunk "not tested yet"
+  end
+
+  test "lists all prefixes + urls" do
+    flunk "not tested yet"
+  end
+
+  test "can remove urls" do
+    flunk "not tested yet"
+  end
+
+  test "recovers if the endpoint crashes" do
+    flunk "Not tested yet"
   end
 end

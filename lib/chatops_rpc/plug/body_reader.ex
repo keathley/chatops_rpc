@@ -1,12 +1,13 @@
 defmodule ChatopsRPC.Plug.BodyReader do
   @moduledoc """
-  Custom [Plug.Parsers](https://hexdocs.pm/plug/Plug.Parsers.html#module-custom-body-reader) body
-  reader to support the custom `Slash.Signature` verification process.
-  ***This must be configured for your application when using Slash!***
+  Custom body reader that stores the message body in plug private. This is required
+  for chatops rpc to do authentication against the signing token provided by
+  the client.
+
   ## Example
       plug Plug.Parsers,
         parsers: [:urlencoded],
-        body_reader: {Slash.BodyReader, :read_body, []}
+        body_reader: {ChatopsRPC.Plug.BodyReader, :read_body, []}
   """
 
   alias Plug.Conn

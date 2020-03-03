@@ -8,8 +8,12 @@ defmodule ChatopsRPC.Client do
     Endpoints,
   }
 
-  def start_polling(server \\ __MODULE__, url) do
-    Endpoints.start_polling(endpoints_name(server), url)
+  def add(server \\ __MODULE__, url, prefix) do
+    Endpoints.start_polling(endpoints_name(server), url, prefix)
+  end
+
+  def remove(server, url) do
+    Endpoints.remove(endpoints_name(server), url)
   end
 
   def call(server \\ __MODULE__, url, path, data) do
