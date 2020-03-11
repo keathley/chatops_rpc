@@ -2,20 +2,32 @@ defmodule ChatopsRPC.Client.APITest do
   use ExUnit.Case, async: false
 
   alias ChatopsRPC.TestServer
-  alias ChatopsRPC.Client
   alias ChatopsRPC.Client.API
 
   setup_all do
     key = File.read!("test/support/chatops.key")
-    Client.start_link(private_key: key)
+    [entry] = :public_key.pem_decode(key)
+    pk1 = :public_key.pem_entry_decode(entry)
+
+    key = File.read!("test/support/chatops.backup.key")
+    [entry] = :public_key.pem_decode(key)
+    pk2 = :public_key.pem_entry_decode(entry)
+
     TestServer.start()
+
+    {:ok, pk: pk1, pk2: pk2}
+  end
+
+  setup do
+    # start_supervised({ChatopsRPC.Client, []})
+    start_supervised({ChatopsRPC.Client.API, []})
 
     :ok
   end
 
-  test "can request rpcs from an endpoint" do
+  test "can request rpcs from an endpoint", %{pk: pk} do
     url = "http://localhost:4002/_chatops"
-    {:ok, response} = API.listing(Client, url)
+    {:ok, response} = API.listing(url, pk)
 
     assert response == %{
       namespace: "test_ops",
@@ -32,7 +44,7 @@ defmodule ChatopsRPC.Client.APITest do
     }
   end
 
-  test "can call rpcs" do
+  test "can call rpcs", %{pk: pk} do
     url = "http://localhost:4002/_chatops"
     rpc = %{
       user: "chris",
@@ -42,7 +54,21 @@ defmodule ChatopsRPC.Client.APITest do
         "text" => "foo"
       }
     }
-    {:ok, response} = API.call(Client, url, "echo", rpc)
+    {:ok, response} = API.call(url, "echo", rpc, pk)
+    assert response == "foo"
+  end
+
+  test "can use either private key", %{pk2: pk} do
+    url = "http://localhost:4002/_chatops"
+    rpc = %{
+      user: "chris",
+      room_id: "room id",
+      method: "echo",
+      params: %{
+        "text" => "foo"
+      }
+    }
+    {:ok, response} = API.call(url, "echo", rpc, pk)
     assert response == "foo"
   end
 end

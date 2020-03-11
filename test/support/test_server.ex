@@ -32,7 +32,8 @@ defmodule ChatopsRPC.TestServer do
   @moduledoc false
   def start do
     public_key = File.read!("test/support/chatops.key.pub")
-    {:ok, _} = ChatopsRPC.Server.start_link(base_url: "http://localhost:4002", public_key: public_key)
+    backup_key = File.read!("test/support/chatops.backup.key.pub")
+    {:ok, _} = ChatopsRPC.Server.start_link(base_url: "http://localhost:4002", public_key: public_key, alt_public_key: backup_key)
     Plug.Cowboy.http ChatopsRPC.TestRouter, [], [port: 4002]
   end
 end

@@ -6,76 +6,27 @@ defmodule ChatopsRPC.Client do
   use Supervisor
 
   alias ChatopsRPC.Client.{
+    Store,
     API,
-    Endpoints,
   }
 
-  def add(server \\ __MODULE__, url, prefix) do
-    Endpoints.start_polling(endpoints_name(server), url, prefix)
-  end
-
-  def remove(server, url) do
-    Endpoints.remove(endpoints_name(server), url)
-  end
-
-  def call(server \\ __MODULE__, url, path, data) do
-    API.call(server, url, path, data)
-  end
-
-  def list(server \\ __MODULE__) do
-    Endpoints.list(endpoints_name(server))
-  end
-
-  def methods(server \\ __MODULE__) do
-    endpoints_name(server)
-    |> Endpoints.list()
-    |> Enum.flat_map(fn {_prefix, info} ->
-      Enum.map(info.methods, fn m -> Map.put(m, :url, info.url) end)
-    end)
-  end
-
-  # def find_method(server \\ __MODULE__, text, cb) do
-  #   case Endpoints.find_method(endpoints_name(server), text) do
-  #     nil ->
-  #       nil
-
-  #     {url, method} ->
-  #       cb.(url, method)
-  #   end
-  # end
-
-  def private_key(server) do
-    :persistent_term.get({server, :private_key})
-  end
+  defdelegate debug(server, url), to: Store
+  defdelegate call(server, url, path, data), to: Store
+  defdelegate poll(server, url, prefix), to: Store
+  defdelegate remove(server, url), to: Store
+  defdelegate list(server), to: Store
+  # defdelegate private_key(server), to: Store
 
   def start_link(opts) do
-    opts = Keyword.put_new(opts, :name, __MODULE__)
-    Supervisor.start_link(__MODULE__, opts, name: opts[:name])
+    Supervisor.start_link(__MODULE__, opts)
   end
 
   def init(opts) do
-    load_private_key!(opts)
-
     children = [
-      {Endpoints, [name: endpoints_name(opts[:name]), client: opts[:name]]},
+      {Store, opts},
+      {API, opts},
     ]
 
-    Supervisor.init(children, strategy: :rest_for_one)
-  end
-
-  defp endpoints_name(name) do
-    :"#{name}.Endpoints"
-  end
-
-  defp load_private_key!(opts) do
-    case opts[:private_key] do
-      nil ->
-        raise ArgumentError, "chatops client requires a `:private_key`"
-
-      contents ->
-        [entry] = :public_key.pem_decode(contents)
-        key = :public_key.pem_entry_decode(entry)
-        :persistent_term.put({opts[:name], :private_key}, key)
-    end
+    Supervisor.init(children, strategy: :one_for_one)
   end
 end
