@@ -131,7 +131,7 @@ by adding `chatops_rpc` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:chatops_rpc, "~> 0.1.0"}
+    {:chatops_rpc, "~> 0.2.0"}
   ]
 end
 ```
