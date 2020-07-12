@@ -22,14 +22,14 @@ defmodule ChatopsRPC.Handler do
     list = Bot.get(bot, @key) || %{}
 
     for {prefix, url} <- list do
-      Client.add(state.client, url, prefix)
+      Client.poll(state.client, url, prefix)
     end
 
     {:ok, state}
   end
 
   respond(~r/rpc debug (\S+)/, fn [url], event, state ->
-    with {:ok, info} <- Client.API.listing(state.client, url),
+    with {:ok, info} <- Client.debug(state.client, url),
          {:ok, encoded} <- Jason.encode(info) do
       reply(event, "Info for #{url}")
       code(event, encoded)
@@ -51,11 +51,11 @@ defmodule ChatopsRPC.Handler do
     state
   end)
 
-  respond(~r/rpc add (\S+) (#{@argument_matcher})*?/, fn [url], event, state ->
+  respond(~r/rpc add (\S+)(#{@argument_matcher})*?/, fn [url], event, state ->
     uri      = URI.parse(url)
     args     = extract_arguments(event.text)
     prefix   = args["prefix"]
-    endpoint = Client.list()[prefix]
+    endpoint = Client.list(state.client)[prefix]
 
     cond do
       uri.scheme != "https" && state[:mode] != :test ->
@@ -66,16 +66,9 @@ defmodule ChatopsRPC.Handler do
 
       true ->
         url = URI.to_string(uri)
-
-        case Client.add(state.client, url, prefix) do
-          :ok ->
-            store_new_prefixes(event.bot, state)
-            reply(event, "Okay, I'll poll #{url} for chatops.")
-
-          {:error, msg} ->
-            reply(event, "Sorry, #{msg}")
-            nil
-        end
+        reply(event, "Okay, I'll poll #{url} for chatops.")
+        Client.poll(state.client, url, prefix)
+        store_new_prefixes(event.bot, state)
     end
 
     state
@@ -133,7 +126,7 @@ defmodule ChatopsRPC.Handler do
 
               matches ->
                 data = %{
-                  user: event.user,
+                  user: event.user.real_name,
                   room_id: event.channel.name,
                   method: method.name,
                   params: matches,
@@ -145,6 +138,7 @@ defmodule ChatopsRPC.Handler do
 
                   {:error, error} ->
                     Logger.error(fn -> "Error calling rpc: #{inspect error}" end)
+                    say(event, "Error: #{inspect error}")
                 end
             end
           end)

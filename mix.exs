@@ -36,12 +36,15 @@ defmodule ChatopsRPC.MixProject do
     [
       {:norm, "~> 0.10"},
       {:plug, "~> 1.8"},
-      {:mojito, "~> 0.6"},
-      {:jason,  "~> 1.1"},
-      {:fawkes, "~> 0.2"},
+      {:jason,  "~> 1.2"},
+      {:finch, "~> 0.3"},
+      # {:fawkes, github: "keathley/fawkes"},
+      # {:fawkes, "~> 0.2"},
+      {:fawkes, path: "../fawkes"},
 
       {:plug_cowboy, "~> 2.1", only: [:dev, :test]},
       {:ex_doc, "~> 0.19", only: [:dev, :test]},
+      {:x509, "~> 0.8", only: [:dev, :test]},
     ]
   end
 

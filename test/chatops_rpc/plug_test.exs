@@ -9,6 +9,12 @@ defmodule ChatopsRPC.PlugTest do
     :ok
   end
 
+  setup do
+    start_supervised({Finch, name: Test})
+
+    :ok
+  end
+
   test "requires a valid timestamp" do
     url = "http://localhost:4002/_chatops"
     now = DateTime.add(DateTime.utc_now(), -90, :second)
@@ -17,22 +23,46 @@ defmodule ChatopsRPC.PlugTest do
       {"Chatops-Timestamp", ts},
     ]
 
-    {:ok, resp} = Mojito.get(url, headers)
+    {:ok, resp} = Finch.request(Finch.build(:get, url, headers), Test)
     decoded = Jason.decode!(resp.body)
     assert decoded["error"] == "Chatops timestamp must be within 1 minute of server time"
   end
 
-  @tag :skip
   test "requires a valid nonce" do
-    flunk "Not Tested yet"
-    flunk "validate rejects duplicate nonces"
+    url   = "http://localhost:4002/_chatops"
+    now   = DateTime.utc_now()
+    ts    = DateTime.to_iso8601(now)
+
+    headers = [
+      {"Chatops-Timestamp", ts},
+    ]
+
+    {:ok, resp} = Finch.request(Finch.build(:get, url, headers), Test)
+    decoded = Jason.decode!(resp.body)
+    assert decoded["error"] == "Chatops-Nonce header is required"
+  end
+
+  test "nonces cannot be reused" do
+    url   = "http://localhost:4002/_chatops"
+    now   = DateTime.utc_now()
+    ts    = DateTime.to_iso8601(now)
+    nonce = Base.encode64(:crypto.strong_rand_bytes(32))
+
+    headers = [
+      {"Chatops-Timestamp", ts},
+      {"Chatops-Nonce", nonce},
+    ]
+
+    {:ok, _resp} = Finch.request(Finch.build(:get, url, headers), Test)
+    {:ok, resp} = Finch.request(Finch.build(:get, url, headers), Test)
+    decoded = Jason.decode!(resp.body)
+    assert decoded["error"] == "Nonces cannot be re-used"
   end
 
   @tag :skip
-  test "validate signature" do
+  test "includes a signature header" do
     flunk "Not tested yet"
     flunk "Invalid signature"
-    flunk "works with either private key"
     flunk "Errors if invalid signature"
   end
 end

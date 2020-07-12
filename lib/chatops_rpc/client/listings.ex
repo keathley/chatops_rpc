@@ -25,7 +25,7 @@ defmodule ChatopsRPC.Client.Listings do
   def add_listing(listings, info, url, prefix) do
     namespace = prefix || info.namespace
     methods =
-      info.methods
+      (info[:methods] || [])
       |> Enum.map(fn {name, method} -> Map.put(method, :name, name) end)
       |> Enum.map(fn method ->
         case Regex.compile("^#{namespace} #{method.regex}") do
@@ -40,7 +40,7 @@ defmodule ChatopsRPC.Client.Listings do
 
     endpoint = %{
       url: url,
-      help: info.help,
+      help: info[:help],
       methods: methods,
     }
     endpoints = Map.put(listings.endpoints, namespace, endpoint)
@@ -68,17 +68,17 @@ defmodule ChatopsRPC.Client.Listings do
     |> put_in([:endpoints, prefix, :help], listing.help)
   end
 
-  def find_method(%{endpoints: endpoints}, text) do
-    Enum.find_value(endpoints, fn {_prefix, info} ->
-      method = Enum.find(info.methods, fn method ->
-        Regex.match?(method.regex, text)
-      end)
+  # def find_method(%{endpoints: endpoints}, text) do
+  #   Enum.find_value(endpoints, fn {_prefix, info} ->
+  #     method = Enum.find(info.methods, fn method ->
+  #       Regex.match?(method.regex, text)
+  #     end)
 
-      if method do
-        {info.url, method}
-      else
-        false
-      end
-    end)
-  end
+  #     if method do
+  #       {info.url, method}
+  #     else
+  #       false
+  #     end
+  #   end)
+  # end
 end
