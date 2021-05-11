@@ -40,6 +40,8 @@ defmodule ChatopsRPC.MixProject do
       {:finch, "~> 0.3"},
       {:fawkes, "~> 0.4"},
 
+      {:credo, "~> 1.5", only: [:dev, :test]},
+      {:dialyxir, "~> 1.1", only: [:dev, :test]},
       {:plug_cowboy, "~> 2.1", only: [:dev, :test]},
       {:ex_doc, "~> 0.19", only: [:dev, :test]},
       {:x509, "~> 0.8", only: [:dev, :test]},
