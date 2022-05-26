@@ -44,5 +44,5 @@
   "telemetry": {:hex, :telemetry, "0.4.3", "a06428a514bdbc63293cd9a6263aad00ddeb66f608163bdec7c8995784080818", [:rebar3], [], "hexpm", "eb72b8365ffda5bed68a620d1da88525e326cb82a75ee61354fc24b844768041"},
   "unicode_util_compat": {:hex, :unicode_util_compat, "0.5.0", "8516502659002cec19e244ebd90d312183064be95025a319a6c7e89f4bccd65b", [:rebar3], [], "hexpm", "d48d002e15f5cc105a696cf2f1bbb3fc72b4b770a184d8420c8db20da2674b38"},
   "websocket_client": {:hex, :websocket_client, "1.4.2", "f1036e3f9427eecdb66808eee56dbcaeb5a1a352306e6a0d0d23a9487205f4d7", [:rebar3], [], "hexpm", "c005e5f8f2f6a8533c497a509dc52f3e6fb42fa2e0d67bff8ebc8802868d84ed"},
-  "x509": {:hex, :x509, "0.8.3", "2306b7e9e9dce35cf16a2608c8d85027fa35f37b33c500b775362bbfd388d224", [:mix], [], "hexpm", "101650f2f35de8528878ae9cd449cb2d0cdcd9974733640ef320fad757594684"},
+  "x509": {:hex, :x509, "0.8.5", "22b2c5dfc87b05d46595d3764f41a23fcb7360f891e0464f1a2ec118177cd4e4", [:mix], [], "hexpm", "c63eb89e8bbe8a5e21b6404ad1082faff670e38b74960297f90d023177949e07"},
 }
